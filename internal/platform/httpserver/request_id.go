@@ -1,4 +1,4 @@
-package middlewares
+package httpserver
 
 import (
 	"crypto/rand"

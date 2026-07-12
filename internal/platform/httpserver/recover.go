@@ -1,4 +1,4 @@
-package middlewares
+package httpserver
 
 import (
 	"net/http"
@@ -12,11 +12,11 @@ func RecoverMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 		return func(c *echo.Context) error {
 			defer func() {
 				if r := recover(); r != nil {
-				recErr, ok := r.(error)
-				if !ok {
-					recErr = echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
-				}
-				_ = recErr
+					recErr, ok := r.(error)
+					if !ok {
+						recErr = echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
+					}
+					_ = recErr
 					logger.Error("panic recovered",
 						zap.Any("panic", r),
 						zap.String("path", c.Path()),

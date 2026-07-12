@@ -1,10 +1,10 @@
-package logger
+package logging
 
 import (
 	"os"
 	"strings"
 
-	"notification-service/internal/config"
+	"notification-service/internal/platform/config"
 
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"

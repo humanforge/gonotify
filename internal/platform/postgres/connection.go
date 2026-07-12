@@ -1,10 +1,10 @@
-package database
+package postgres
 
 import (
 	"database/sql"
 	"fmt"
 
-	"notification-service/internal/config"
+	"notification-service/internal/platform/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

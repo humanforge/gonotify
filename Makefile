@@ -1,7 +1,7 @@
 .PHONY: build run test lint clean docker-build migrate-up migrate-down vet
 
 APP_NAME := notification-service
-CMD_DIR := ./cmd/notification-service
+CMD_DIR := ./cmd/server
 BIN_DIR := ./bin
 MIGRATE_DSN ?= "postgres://postgres:postgres@localhost:5432/notification_service?sslmode=disable"
 
