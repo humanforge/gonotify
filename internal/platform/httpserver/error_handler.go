@@ -1,4 +1,4 @@
-package handlers
+package httpserver
 
 import (
 	"errors"
@@ -45,11 +45,4 @@ func NewErrorHandler(log *zap.Logger, isProduction bool) echo.HTTPErrorHandler {
 			}
 		}
 	}
-}
-
-func GetRequestID(c *echo.Context) string {
-	if id, ok := c.Get("request_id").(string); ok {
-		return id
-	}
-	return ""
 }

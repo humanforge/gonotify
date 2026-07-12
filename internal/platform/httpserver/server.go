@@ -1,12 +1,10 @@
-package server
+package httpserver
 
 import (
 	"context"
 
-	"notification-service/internal/config"
-	"notification-service/internal/database"
-	"notification-service/internal/handlers"
-	"notification-service/internal/middlewares"
+	"notification-service/internal/platform/config"
+	"notification-service/internal/platform/postgres"
 
 	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
@@ -17,10 +15,10 @@ type Server struct {
 	Echo   *echo.Echo
 	logger *zap.Logger
 	cfg    *config.Config
-	db     *database.DBConnection
+	db     *postgres.DBConnection
 }
 
-func New(cfg *config.Config, logger *zap.Logger, db *database.DBConnection) *Server {
+func New(cfg *config.Config, logger *zap.Logger, db *postgres.DBConnection) *Server {
 	e := echo.New()
 
 	s := &Server{
@@ -38,26 +36,26 @@ func New(cfg *config.Config, logger *zap.Logger, db *database.DBConnection) *Ser
 }
 
 func (s *Server) registerMiddlewares() {
-	s.Echo.Use(middlewares.RequestIDMiddleware())
-	s.Echo.Use(middlewares.SecureHeadersMiddleware())
-	s.Echo.Use(middlewares.CORSMiddleware(s.cfg.CORSAllowedOrigins))
-	s.Echo.Use(middlewares.RecoverMiddleware(s.logger))
-	s.Echo.Use(middlewares.RequestLoggerMiddleware(s.logger))
+	s.Echo.Use(RequestIDMiddleware())
+	s.Echo.Use(SecureHeadersMiddleware())
+	s.Echo.Use(CORSMiddleware(s.cfg.CORSAllowedOrigins))
+	s.Echo.Use(RecoverMiddleware(s.logger))
+	s.Echo.Use(RequestLoggerMiddleware(s.logger))
 
 	if s.cfg.DBConnMaxLifetime > 0 {
-		s.Echo.Use(middlewares.TimeoutMiddleware(s.cfg.DBConnMaxLifetime))
+		s.Echo.Use(TimeoutMiddleware(s.cfg.DBConnMaxLifetime))
 	}
 
-	rl := middlewares.NewRateLimiter(rate.Limit(100), 200)
-	s.Echo.Use(middlewares.RateLimitMiddleware(rl))
+	rl := NewRateLimiter(rate.Limit(100), 200)
+	s.Echo.Use(RateLimitMiddleware(rl))
 }
 
 func (s *Server) registerErrorHandler() {
-	s.Echo.HTTPErrorHandler = handlers.NewErrorHandler(s.logger, s.cfg.Env == "production")
+	s.Echo.HTTPErrorHandler = NewErrorHandler(s.logger, s.cfg.Env == "production")
 }
 
 func (s *Server) registerRoutes() {
-	health := handlers.NewHealthHandler(s.db, s.logger)
+	health := NewHealthHandler(s.db, s.logger)
 
 	api := s.Echo.Group("/api/v1")
 

@@ -1,20 +1,20 @@
-package handlers
+package httpserver
 
 import (
 	"net/http"
 
-	"notification-service/internal/database"
+	"notification-service/internal/platform/postgres"
 
 	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
 
 type HealthHandler struct {
-	db  *database.DBConnection
+	db  *postgres.DBConnection
 	log *zap.Logger
 }
 
-func NewHealthHandler(db *database.DBConnection, log *zap.Logger) *HealthHandler {
+func NewHealthHandler(db *postgres.DBConnection, log *zap.Logger) *HealthHandler {
 	return &HealthHandler{db: db, log: log}
 }
 

@@ -1,4 +1,4 @@
-package middlewares
+package httpserver
 
 import (
 	"github.com/labstack/echo/v5"

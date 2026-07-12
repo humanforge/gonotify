@@ -6,10 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"notification-service/internal/config"
-	"notification-service/internal/database"
-	"notification-service/internal/logger"
-	"notification-service/internal/server"
+	"notification-service/internal/notification"
+	"notification-service/internal/platform/config"
+	"notification-service/internal/platform/httpserver"
+	"notification-service/internal/platform/logging"
+	"notification-service/internal/platform/postgres"
 
 	"go.uber.org/zap"
 )
@@ -21,18 +22,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	log, err := logger.New(cfg)
+	log, err := logging.New(cfg)
 	if err != nil {
 		os.Stderr.WriteString("failed to initialize logger: " + err.Error() + "\n")
 		os.Exit(1)
 	}
 
-	db, err := database.NewDBConnection(cfg)
+	db, err := postgres.NewDBConnection(cfg)
 	if err != nil {
 		log.Fatal("failed to connect to database", zap.Error(err))
 	}
 
-	srv := server.New(cfg, log, db)
+	notifStore := notification.NewStore(db.DB)
+	notifSvc := notification.NewService(notifStore)
+	notifHandler := notification.NewHandler(notifSvc, log)
+
+	srv := httpserver.New(cfg, log, db)
+	notifHandler.RegisterRoutes(srv.Echo.Group("/api/v1"))
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

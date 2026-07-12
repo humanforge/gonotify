@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/notification-service ./cmd/notification-service/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/notification-service ./cmd/server/main.go
 
 # Runtime stage
 FROM alpine:3.20
