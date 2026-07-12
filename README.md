@@ -11,14 +11,14 @@ Go microservice built with Echo v5, GORM/Postgres, Zap logging.
 ## Quick Start
 
 ```bash
-# Copy and edit environment config
+# Copy and edit environment config (or use the existing .env)
 cp .env.example .env
 
 # Start Postgres and app via Docker Compose
 docker compose -f deploy/docker-compose.yml up -d
 
 # Or run locally:
-go run ./cmd/notification-service/main.go
+go run ./cmd/server/main.go
 ```
 
 ## Environment Variables
@@ -40,13 +40,6 @@ go run ./cmd/notification-service/main.go
 | `SHUTDOWN_TIMEOUT` | No | `15s` | Graceful shutdown timeout |
 | `CORS_ALLOWED_ORIGINS` | No | `*` | Comma-separated CORS origins |
 
-## API Endpoints
-
-- `GET /healthz` — Liveness probe (always 200)
-- `GET /readyz` — Readiness probe (pings DB, 503 if unhealthy)
-- `GET /api/v1/healthz` — Versioned health check
-- `GET /api/v1/readyz` — Versioned readiness check
-
 ## Makefile Commands
 
 ```bash
@@ -63,19 +56,22 @@ make docker-build # Build Docker image
 
 ```
 .
-├── cmd/notification-service/main.go     # Entrypoint
+├── cmd/server/main.go               # Entrypoint with explicit dependency wiring
 ├── internal/
-│   ├── config/          # Typed config, validation
-│   ├── logger/          # Zap logger setup
-│   ├── database/        # GORM connection, pool, transactions
-│   ├── server/          # Echo setup, routes, graceful shutdown
-│   ├── middlewares/      # Request logging, recover, CORS, etc.
-│   ├── handlers/        # HTTP handlers, error handler
-│   ├── domain/          # Business logic interfaces
-│   └── repository/      # DB implementations
-├── migrations/          # SQL migrations
-├── deploy/              # Dockerfile, docker-compose
-└── .env.example
+│   ├── notification/                # Notification feature
+│   │   ├── types.go                 # Domain struct, request/response DTOs
+│   │   ├── store.go                 # Persistence layer (GORM)
+│   │   ├── service.go               # Business logic
+│   │   └── handler.go               # HTTP handlers
+│   ├── platform/
+│   │   ├── config/                  # Typed config, validation
+│   │   ├── httpserver/              # Echo setup, middleware, health checks
+│   │   ├── postgres/                # DB connection, pool, transactions
+│   │   └── logging/                 # Zap logger setup
+│   └── apperr/                      # Sentinels and typed error codes
+├── migrations/                      # SQL migrations
+├── deploy/                          # Dockerfile, docker-compose
+└── .env
 ```
 
 ## Startup Order
@@ -83,7 +79,8 @@ make docker-build # Build Docker image
 1. Load and validate config
 2. Initialize logger
 3. Connect to database with connection pooling
-4. Register middleware chain
-5. Register routes
-6. Start HTTP server
-7. On SIGINT/SIGTERM, gracefully drain connections, close DB, flush logs
+4. Construct feature layer: `NewStore` → `NewService` → `NewHandler`
+5. Register middleware chain
+6. Register routes (feature handlers attached via `RegisterRoutes`)
+7. Start HTTP server
+8. On SIGINT/SIGTERM, gracefully drain connections, close DB, flush logs
