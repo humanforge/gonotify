@@ -11,7 +11,6 @@ type notificationStore interface {
 	ListByUser(ctx context.Context, userID string) ([]Notification, error)
 	MarkRead(ctx context.Context, id string) error
 }
-
 type Service struct {
 	store notificationStore
 }
