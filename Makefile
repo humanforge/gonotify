@@ -1,40 +1,43 @@
-.PHONY: build run test lint clean docker-build migrate-up migrate-down vet
+.PHONY: build-all test-all lint tidy clean
 
-APP_NAME := notification-service
-CMD_DIR := ./cmd/server
-BIN_DIR := ./bin
-MIGRATE_DSN ?= "postgres://postgres:postgres@localhost:5432/notification_service?sslmode=disable"
+SERVICES := template-svc
 
-build:
-	go build -o $(BIN_DIR)/$(APP_NAME) $(CMD_DIR)/main.go
+build-all:
+	@for svc in $(SERVICES); do \
+		echo "Building $$svc..."; \
+		cd services/$$svc && go build ./cmd/...; \
+	done
 
-run: build
-	$(BIN_DIR)/$(APP_NAME)
-
-test:
-	go test -v -race -count=1 ./...
+test-all:
+	@for svc in $(SERVICES); do \
+		echo "Testing $$svc..."; \
+		cd services/$$svc && go test -v -race -count=1 ./...; \
+	done
 
 lint:
-	golangci-lint run ./...
+	@for svc in $(SERVICES); do \
+		echo "Linting $$svc..."; \
+		cd services/$$svc && golangci-lint run ./...; \
+	done
+
+tidy:
+	@for svc in $(SERVICES); do \
+		echo "Tidying $$svc..."; \
+		cd services/$$svc && go mod tidy; \
+	done
+	cd pkg && go mod tidy 2>/dev/null || true
 
 vet:
-	go vet ./...
+	@for svc in $(SERVICES); do \
+		echo "Vetting $$svc..."; \
+		cd services/$$svc && go vet ./...; \
+	done
 
 clean:
-	rm -rf $(BIN_DIR)
+	@for svc in $(SERVICES); do \
+		rm -rf services/$$svc/bin; \
+	done
 
-docker-build:
-	docker build -t $(APP_NAME) -f deploy/Dockerfile .
-
-migrate-up:
-	@echo "Run: migrate -path migrations -database $(MIGRATE_DSN) up"
-
-migrate-down:
-	@echo "Run: migrate -path migrations -database $(MIGRATE_DSN) down"
-
-migrate-create:
-	@read -p "Enter migration name: " name; \
-	migrate create -ext sql -dir migrations -seq $$name
-
-.PHONY: all
-all: vet build test
+.PHONY: proto-gen
+proto-gen:
+	@echo "Run: protoc --go_out=pkg/proto --go_opt=paths=source_relative ..."
