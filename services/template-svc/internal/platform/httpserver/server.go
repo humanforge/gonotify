@@ -23,6 +23,7 @@ func New(cfg *config.Config, logger *zap.Logger, db *postgres.DBConnection) *Ser
 		Echo:   e,
 		logger: logger,
 		db:     db,
+		cfg:    cfg,
 	}
 	s.registerMiddlewares()
 	s.registerErrorHandler()
