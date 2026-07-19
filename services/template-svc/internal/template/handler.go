@@ -1,3 +1,4 @@
+// Package template
 package template
 
 import (
@@ -10,8 +11,8 @@ import (
 )
 
 type Handler struct {
-	svc  *Service
-	log  *zap.Logger
+	svc *Service
+	log *zap.Logger
 }
 
 func NewHandler(svc *Service, log *zap.Logger) *Handler {

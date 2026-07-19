@@ -95,7 +95,7 @@ func (s *Service) List(ctx context.Context, limit int, cursor string) (*ListTemp
 	}
 
 	resp := &ListTemplatesResponse{
-		Templates: make([]TemplateResponse, len(templates)),
+		Templates:  make([]TemplateResponse, len(templates)),
 		NextCursor: next,
 	}
 	for i, t := range templates {
