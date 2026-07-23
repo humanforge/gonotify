@@ -6,9 +6,9 @@ import (
 
 	"notification-service/services/template-svc/internal/platform/config"
 
-	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func New(cfg *config.Config) (*zap.Logger, error) {
