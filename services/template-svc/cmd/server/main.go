@@ -6,11 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"notification-service/services/template-svc/internal/template"
 	"notification-service/services/template-svc/internal/platform/config"
 	"notification-service/services/template-svc/internal/platform/httpserver"
 	"notification-service/services/template-svc/internal/platform/logging"
 	"notification-service/services/template-svc/internal/platform/postgres"
+	"notification-service/services/template-svc/internal/template"
 
 	"go.uber.org/zap"
 )
